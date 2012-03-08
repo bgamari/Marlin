@@ -236,9 +236,17 @@ clean:
 	@echo "  RM    applet/*"
 	@$(REMOVE) applet/$(TARGET).hex applet/$(TARGET).eep applet/$(TARGET).cof applet/$(TARGET).elf \
 		applet/$(TARGET).map applet/$(TARGET).sym applet/$(TARGET).lss applet/$(TARGET).cpp applet/core.a \
-		$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d) $(CXXSRC:.cpp=.s) $(CXXSRC:.cpp=.d)
+		$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d) $(CXXSRC:.cpp=.s) $(CXXSRC:.cpp=.d) \
+		temp_sensors/*.h
 	@echo "  RMDIR applet/"
 	@rmdir applet
+
+.PHONY : temp_sensors
+temp_sensors : $(patsubst %.in,%.h,$(wildcard temp_sensors/*.in))
+Configuration.h : temp_sensors
+temp_sensors/%.h : temp_sensors/%.in createTemperatureLookup.py
+	@echo "  TSENS $@"
+	@python createTemperatureLookup.py $(shell cat $<) > $@
 
 depend:
 	if grep '^# DO NOT DELETE' $(MAKEFILE) >/dev/null; \
